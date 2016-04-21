@@ -1,4 +1,43 @@
+server_ip = "coap://192.168.43.1:5683/"
 
+cc = coap.Client()		
+-- wait for ip and register this device
+tmr.alarm(1, 1000, 1, function()
+	if wifi.sta.getip()== nil then
+		print("IP unavaiable, Waiting...")
+	else
+		tmr.stop(1)
+
+		register = {title = "Device", ip = wifi.sta.getip(), port = 5683, mac = wifi.ap.getmac(), version = 1}
+		ok, json = pcall(cjson.encode, register)
+		cc:post(coap.CON, server_ip .. "register", json)
+ 	end
+end)
+
+cs=coap.Server()
+cs:listen(5683)
+
+-- function should take only one string, return one string.
+function uuid(payload)
+	print(payload)
+	UUID=payload
+	tmr.start(2)
+	respond = "OK"
+	return respond
+end
+cs:func("uuid")
+
+tmr.register(2, 1000, 1, function()
+	if UUID == nil then
+		print("UUID unavaiable, Waiting...")
+	else
+		touch_to_json = {uuid = UUID, proximity = touch_val}
+		ok, touch_json = pcall(cjson.encode, touch_to_json)
+		cc:post(coap.CON, server_ip .. "proximity", touch_json)
+	end
+end)
+
+-- LED
 R=2
 G=8
 B=1
@@ -6,9 +45,11 @@ pwm.setup(R, 100, 1)
 pwm.setup(G, 100, 1)
 pwm.setup(B, 100, 1)
 
---  ====================================================
 
---  ====================================================
+
+-- --  ====================================================
+
+-- --  ====================================================
 
 id=0
 sda=6
@@ -36,9 +77,9 @@ function write_reg(dev_addr, reg_addr, reg_data)
 end
 
 
---  ====================================================
+-- --  ====================================================
 
---  ====================================================
+-- --  ====================================================
 
 tmr_touch_port=5
 a = {}
@@ -73,9 +114,9 @@ function pin1cb(level)
 			write_reg(0x50,0x00,0x00)
 		end
 		
---  ====================================================
+-- --  ====================================================
 
---  ====================================================
+-- --  ====================================================
 function hsvToRgb(h, s, v, a)
   local r, g, b
 
@@ -103,7 +144,8 @@ trig_proximity_id=0
 function touch_pwm()
 	reg_val =string.byte(read_reg(0x50,0x10))
 	touch_val = bit.band(reg_val,127)-bit.band(reg_val,128)
-	if touch_val>4 then r,g,b=hsvToRgb(touch_val/127,1,1,1)
+	if touch_val>4 then 
+		r,g,b=hsvToRgb(touch_val/127,1,1,1)
 	else b=0
 		r=0
 		g=0 
@@ -112,25 +154,10 @@ function touch_pwm()
 	pwm.setduty(R,r)
 	pwm.setduty(B,b) 
 end
---  ====================================================
+-- --  ====================================================
+-- calibration
+write_reg(0x50,0x26,0x01)
 
---  ====================================================
-s=net.createServer(net.TCP,18000)
-s:listen(2323,function(c)
-	function s_output(str)
-		if(c~=nil)
-			then c:send(str)
-		end
-	end
-	node.output(s_output, 0)
-	c:on("receive",function(c,l)
-		node.input(l)
-		end)
-	c:on("disconnection",function(c)
-		node.output(nil)
-		end)
-	print("Welcome to climbing wall system")
-	end)
-
-
+gpio.mode(tmr_touch_port, gpio.INPUT)
+tmr.alarm(trig_proximity_id, 20, 1, touch_pwm)
 

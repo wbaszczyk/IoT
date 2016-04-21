@@ -17,9 +17,11 @@ package com.iot.device.management.iot.coap.server;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 
-import com.iot.device.management.iot.Management;
+import com.iot.device.management.iot.Logger;
+import com.iot.device.management.iot.RegisterDeviceCallback;
 import com.iot.device.management.iot.device.DeviceProperties;
 
 import org.eclipse.californium.core.CoapResource;
@@ -27,7 +29,6 @@ import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.UUID;
@@ -35,11 +36,20 @@ import java.util.UUID;
 public class ServerService extends Service {
 
     CoapServer server;
+    private final IBinder binder = new LocalBinder();
+    // Registered callbacks
+    private RegisterDeviceCallback registerDeviceCallback;
+
+    public void setRegisterDeviceCallback(RegisterDeviceCallback registerDeviceCallback) {
+        this.registerDeviceCallback = registerDeviceCallback;
+    }
 
     @Override
     public void onCreate() {
-        this.server = new CoapServer();
+        NetworkConfig networkConfig = new NetworkConfig();
+        this.server = new CoapServer(networkConfig);
         server.add(new RegisterDevice());
+        server.add(new NotifyAboutProximityDetector());
     }
 
     @Override
@@ -50,13 +60,13 @@ public class ServerService extends Service {
 
     @Override
     public void onDestroy() {
+        server.stop();
         server.destroy();
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return binder;
     }
 
     class RegisterDevice extends CoapResource {
@@ -68,14 +78,15 @@ public class ServerService extends Service {
         private static final String TAG_VERSION = "version";
 
         public RegisterDevice() {
-            super("register/device");
+            super("register");
             getAttributes().setTitle("Register device resource");
         }
 
         @Override
         public void handlePOST(CoapExchange exchange) {
             try {
-                JSONObject register = new JSONObject(exchange.getRequestText());
+                String request = exchange.getRequestText();
+                JSONObject register = new JSONObject(request);
                 String title = register.getString(TAG_TITLE);
                 String ipAddress = register.getString(TAG_IP);
                 Integer port = register.getInt(TAG_PORT);
@@ -89,12 +100,51 @@ public class ServerService extends Service {
                 exchange.accept();
                 DeviceProperties deviceProperties = new DeviceProperties(title, ipAddress, port, macAddress);
                 String uuid = UUID.randomUUID().toString();
-                Management.registerDevice(uuid, deviceProperties);
+                if (registerDeviceCallback != null) {
+                    registerDeviceCallback.registerDevice(uuid, deviceProperties);
+                }
                 exchange.respond(CoAP.ResponseCode.CONTENT, uuid);
             } catch (Exception e) {
                 exchange.reject();
                 exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
             }
+        }
+    }
+    class NotifyAboutProximityDetector extends CoapResource {
+
+        private static final String TAG_UUID = "uuid";
+        private static final String TAG_PROXIMITY = "proximity";
+
+        public NotifyAboutProximityDetector() {
+            super("proximity");
+            getAttributes().setTitle("Proximity value");
+        }
+
+        @Override
+        public void handlePOST(CoapExchange exchange) {
+            try {
+                Logger.appendLog("PROXIMITY JSON " + exchange.getRequestText());
+                String request = exchange.getRequestText();
+                JSONObject register = new JSONObject(request);
+                String uuid = register.getString(TAG_UUID);
+                Integer proximity = register.getInt(TAG_PROXIMITY);
+                exchange.accept();
+                Logger.appendLog("uuid " + uuid + " proximity:" + proximity);
+                if (registerDeviceCallback != null) {
+                    registerDeviceCallback.notifyAboutProximityDetector(uuid, proximity);
+                }
+                exchange.respond(CoAP.ResponseCode.CONTENT);
+            } catch (Exception e) {
+                exchange.reject();
+                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+            }
+        }
+    }
+    // Class used for the client Binder.
+    public class LocalBinder extends Binder {
+        public ServerService getService() {
+            // Return this instance of MyService so clients can call public methods
+            return ServerService.this;
         }
     }
 }

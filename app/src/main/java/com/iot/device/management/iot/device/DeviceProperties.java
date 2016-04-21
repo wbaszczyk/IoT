@@ -9,12 +9,21 @@ public class DeviceProperties {
     private String ipAddress;
     private Integer port;
     private String mac;
+//    coap://192.168.43.1:5683/
+
+    private String deviceCoapAddress;
 
     public DeviceProperties(String title, String ipAddress, Integer port, String mac) {
         this.title = title;
         this.ipAddress = ipAddress;
         this.port = port;
         this.mac = mac;
+
+        this.deviceCoapAddress = "coap://" + ipAddress + ":" + port + "/v1/f/";
+    }
+
+    public String getDeviceCoapAddress() {
+        return deviceCoapAddress;
     }
 
     public String getTitle() {
@@ -56,6 +65,7 @@ public class DeviceProperties {
                 ", ipAddress='" + ipAddress + '\'' +
                 ", port=" + port +
                 ", mac='" + mac + '\'' +
+                ", deviceCoapAddress='" + deviceCoapAddress + '\'' +
                 '}';
     }
 }
