@@ -1,6 +1,6 @@
 ______________________________________________________________________________
 POST method from device to server on startup
-coap://server_ip:port/register/device
+coap://server_ip:port/register
 {
     "title" : "Device",
     "ip" : "172.16.1.1", 
@@ -11,7 +11,7 @@ coap://server_ip:port/register/device
 response: UUID genereated by server
 ______________________________________________________________________________
 POST method from device to server on detector proximity touch detect
-coap://server_ip:port/detector/proximity
+coap://server_ip:port/proximity
 {
     "id" : "UUID",
     "proximity" : 5
@@ -19,7 +19,7 @@ coap://server_ip:port/detector/proximity
 response: OK
 ______________________________________________________________________________
 POST method from server to device on LED pwm changed
-coap://device_ip:port/led/change
+coap://device_ip:port/led
 {
     "id" : "UUID",
     "r" : 5,
@@ -27,4 +27,8 @@ coap://device_ip:port/led/change
     "b" : 100
 }
 response: OK
+______________________________________________________________________________
+POST method from server to device on LED pwm changed
+coap://device_ip:port/uuid
+response: UUID
 ______________________________________________________________________________

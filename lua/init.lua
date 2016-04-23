@@ -144,20 +144,20 @@ trig_proximity_id=0
 function touch_pwm()
 	reg_val =string.byte(read_reg(0x50,0x10))
 	touch_val = bit.band(reg_val,127)-bit.band(reg_val,128)
-	if touch_val>4 then 
-		r,g,b=hsvToRgb(touch_val/127,1,1,1)
-	else b=0
-		r=0
-		g=0 
-	end
-	pwm.setduty(G,g)
-	pwm.setduty(R,r)
-	pwm.setduty(B,b) 
+	-- if touch_val>4 then 
+		-- r,g,b=hsvToRgb(touch_val/127,1,1,1)
+	-- else b=0
+		-- r=0
+		-- g=0 
+	-- end
+	-- pwm.setduty(G,g)
+	-- pwm.setduty(R,r)
+	-- pwm.setduty(B,b) 
 end
 -- --  ====================================================
 -- calibration
 write_reg(0x50,0x26,0x01)
 
 gpio.mode(tmr_touch_port, gpio.INPUT)
-tmr.alarm(trig_proximity_id, 20, 1, touch_pwm)
+tmr.alarm(trig_proximity_id, 1000, 1, touch_pwm)
 

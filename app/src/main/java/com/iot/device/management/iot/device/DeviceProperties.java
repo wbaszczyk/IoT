@@ -1,25 +1,68 @@
 package com.iot.device.management.iot.device;
 
+import java.io.Serializable;
+
 /**
  * Created by sneez on 21.04.16.
  */
-public class DeviceProperties {
+public class DeviceProperties implements Serializable {
 
     private String title;
     private String ipAddress;
     private Integer port;
     private String mac;
-//    coap://192.168.43.1:5683/
+    private Integer proximity;
+    private Boolean touchDetector;
+    private String uuid;
+    private String version;
 
+    private String status;
     private String deviceCoapAddress;
 
-    public DeviceProperties(String title, String ipAddress, Integer port, String mac) {
+    public DeviceProperties(String uuid, String title, String version, String ipAddress, Integer port, String mac) {
+        this.uuid = uuid;
         this.title = title;
+        this.version = version;
         this.ipAddress = ipAddress;
         this.port = port;
         this.mac = mac;
 
+        this.touchDetector = false;
+        this.proximity = 0;
+
         this.deviceCoapAddress = "coap://" + ipAddress + ":" + port + "/v1/f/";
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public Integer getProximity() {
+        return proximity;
+    }
+
+    public void setProximity(Integer proximity) {
+        this.proximity = proximity;
+    }
+
+    public Boolean getTouchDetector() {
+        return touchDetector;
+    }
+
+    public void setTouchDetector(Boolean touchDetector) {
+        this.touchDetector = touchDetector;
     }
 
     public String getDeviceCoapAddress() {
@@ -58,14 +101,18 @@ public class DeviceProperties {
         this.mac = mac;
     }
 
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
     @Override
     public String toString() {
-        return "DeviceProperties{" +
-                "title='" + title + '\'' +
-                ", ipAddress='" + ipAddress + '\'' +
-                ", port=" + port +
-                ", mac='" + mac + '\'' +
-                ", deviceCoapAddress='" + deviceCoapAddress + '\'' +
-                '}';
+        String active = touchDetector?"active":"not active";
+        return "IP:" + ipAddress + System.getProperty("line.separator") +
+                " ----> detector " + active + " (" + proximity + ")";
     }
 }

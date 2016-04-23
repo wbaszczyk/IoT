@@ -1,0 +1,121 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".activities.DeviceDetailActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:gravity="center_horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivDeviceCover"
+                android:layout_marginTop="8dp"
+                android:layout_width="344dp"
+                android:layout_height="137dp" />
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:layout_marginTop="8dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp" />
+
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:layout_marginTop="8dp" />
+            <TextView
+                android:id="@+id/tvUuid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp" />
+
+            <View
+                android:background="@android:color/darker_gray"
+                android:layout_width="280dp"
+                android:layout_height="1px"
+                android:layout_marginTop="8dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Proximity detector"
+                android:textSize="14sp" />
+
+            <Button
+                android:layout_width="183dp"
+                android:layout_height="wrap_content"
+                android:text="Start"
+                android:id="@+id/startProximitybtn" />
+
+            <Button
+                android:layout_width="183dp"
+                android:layout_height="wrap_content"
+                android:text="Stop"
+                android:id="@+id/stopProximitybtn"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:id="@+id/tvProximity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp" />
+
+            <View
+                android:background="@android:color/darker_gray"
+                android:layout_width="280dp"
+                android:layout_height="1px"
+                android:layout_marginTop="8dp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="RGB LEDs"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvRGB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/seekBarGreen"
+                android:max="100"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                />
+            <SeekBar android:id="@+id/seekBarRed" android:max="100"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                />
+            <SeekBar android:id="@+id/seekBarBlue" android:max="100"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
