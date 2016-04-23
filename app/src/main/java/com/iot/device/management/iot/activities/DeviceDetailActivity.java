@@ -91,6 +91,13 @@ public class DeviceDetailActivity  extends Activity implements SeekBar.OnSeekBar
                 new CoapPostTask().execute(deviceCoapAddress + "proximity_stop", "notify");
             }
         });
+        Button calibratebtn = (Button)findViewById(R.id.calibratebtn);
+        stopProximitybtn.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new CoapPostTask().execute(deviceCoapAddress + "calibrate", "notify");
+            }
+        });
         bar = (SeekBar) findViewById(R.id.seekBarGreen);
         bar.setOnSeekBarChangeListener(this);
         bar = (SeekBar) findViewById(R.id.seekBarBlue);

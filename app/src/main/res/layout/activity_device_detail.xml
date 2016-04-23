@@ -13,7 +13,8 @@
             android:gravity="center_horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:weightSum="1">
 
             <ImageView
                 android:id="@+id/ivDeviceCover"
@@ -67,6 +68,14 @@
                 android:text="Stop"
                 android:id="@+id/stopProximitybtn"
                 android:layout_gravity="center_horizontal" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Calibrate"
+                android:id="@+id/calibratebtn"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0.75" />
 
             <TextView
                 android:id="@+id/tvProximity"
