@@ -28,4 +28,17 @@
         android:layout_below="@+id/tvTitle"
         android:text="Description"
         android:textSize="12dp" />
+
+    <View
+        android:id="@+id/vNotificator"
+        android:background="@android:color/holo_red_dark"
+        android:layout_width="300dp"
+        android:layout_height="2px"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_below="@+id/tvDescription"/>
+
+
 </RelativeLayout>

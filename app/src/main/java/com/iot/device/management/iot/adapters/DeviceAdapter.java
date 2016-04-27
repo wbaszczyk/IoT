@@ -1,6 +1,7 @@
 package com.iot.device.management.iot.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,7 @@ public class DeviceAdapter extends ArrayAdapter<DeviceProperties> {
         public ImageView ivCover;
         public TextView tvTitle;
         public TextView tvDescription;
+        public View vNotificator;
     }
 
     public DeviceAdapter(Context context, ArrayList<DeviceProperties> deviceProperties) {
@@ -40,12 +42,15 @@ public class DeviceAdapter extends ArrayAdapter<DeviceProperties> {
             viewHolder.ivCover = (ImageView) convertView.findViewById(R.id.ivDevice);
             viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
             viewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+//            viewHolder.vNotificator = (View) convertView.findViewById(R.id.vNotificator);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         viewHolder.tvTitle.setText(device.getTitle());
         viewHolder.tvDescription.setText(device.getIpAddress());
+//        viewHolder.vNotificator.setBackgroundColor(Color.RED);
+        convertView.setEnabled(false);
         Picasso.with(getContext()).load(R.mipmap.device).into(viewHolder.ivCover);
         return convertView;
     }

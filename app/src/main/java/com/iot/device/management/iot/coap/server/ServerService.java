@@ -37,6 +37,7 @@ public class ServerService extends Service {
     public static final String BROADCAST_ACTION = "com.iot.device.management.iot.coap.server";
     public static final String GET_DEVICE_DESCRIPTION_KEY = "devicePropertiesKey";
     public static final String GET_PROXIMITY_DETECTOR_NOTIFICATION_KEY = "proximityNotificationKey";
+    public static final String GET_DEVICE_ACTIVE_NOTIFICATION_KEY = "deviceActiveNotificationKey";
 
     @Override
     public void onCreate() {
@@ -45,6 +46,7 @@ public class ServerService extends Service {
         this.server = new CoapServer(networkConfig);
         server.add(new RegisterDevice());
         server.add(new NotifyAboutProximityDetector());
+        server.add(new NotifyAboutDeviceActive());
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -119,6 +121,32 @@ public class ServerService extends Service {
 
                 Intent intent = new Intent(BROADCAST_ACTION);
                 intent.putExtra(GET_PROXIMITY_DETECTOR_NOTIFICATION_KEY, proximityDetectorNotification);
+                sendBroadcast(intent);
+
+                exchange.accept();
+                exchange.respond(CoAP.ResponseCode.CONTENT);
+            } catch (Exception e) {
+                exchange.reject();
+                exchange.respond(CoAP.ResponseCode.BAD_REQUEST);
+            }
+        }
+    }
+    class NotifyAboutDeviceActive extends CoapResource {
+        private static final String TAG_UUID = "uuid";
+
+        public NotifyAboutDeviceActive() {
+            super("active");
+            getAttributes().setTitle("Device active");
+        }
+        @Override
+        public void handlePOST(CoapExchange exchange) {
+            try {
+                String request = exchange.getRequestText();
+                JSONObject register = new JSONObject(request);
+                String uuid = register.getString(TAG_UUID);
+
+                Intent intent = new Intent(BROADCAST_ACTION);
+                intent.putExtra(GET_DEVICE_ACTIVE_NOTIFICATION_KEY, uuid);
                 sendBroadcast(intent);
 
                 exchange.accept();

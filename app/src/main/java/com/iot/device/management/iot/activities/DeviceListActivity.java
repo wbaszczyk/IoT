@@ -5,17 +5,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.SearchView;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
-import com.iot.device.management.iot.Logger;
+import com.iot.device.management.iot.DeviceUtil;
 import com.iot.device.management.iot.R;
 import com.iot.device.management.iot.adapters.DeviceAdapter;
 import com.iot.device.management.iot.coap.client.CoapPostTask;
@@ -26,6 +25,7 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +33,8 @@ import java.util.Map;
 /**
  * Created by sneez on 22.04.16.
  */
-public class DeviceListActivity extends Activity {
-    public static final String BOOK_DETAIL_KEY = "book";
+public class DeviceListActivity extends Activity implements Button.OnClickListener {
+    public static final String DEVICE_DETAIL_KEY = "device";
     private ListView lvDevices;
     private DeviceAdapter deviceAdapter;
     ArrayList<DeviceProperties> devices = new ArrayList<>();
@@ -49,14 +49,49 @@ public class DeviceListActivity extends Activity {
         lvDevices = (ListView) findViewById(R.id.lvDevices);
         deviceAdapter = new DeviceAdapter(this, devices);
         lvDevices.setAdapter(deviceAdapter);
-        setupBookSelectedListener();
+        setupDeviceSelectedListener();
 
         startService(new Intent(this, ServerService.class));
         registerReceiver(broadcastReceiver, new IntentFilter(ServerService.BROADCAST_ACTION));
 
+        Button refreshbtn = (Button)findViewById(R.id.refreshbtn);
+        refreshbtn.setOnClickListener(this);
+
+        new Thread(new Runnable(){
+            public void run(){
+                while(true){
+                    for (DeviceProperties deviceProperties : devicePropertiesMap.values()) {
+                        new CoapGetTask().execute(deviceProperties.getDeviceVarCoapAddress() + "isActive", deviceProperties.getUuid());
+                    }
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            }
+        ).start();
 //        registerDevice(new DeviceProperties("asd", "dsaa", "ver", "1.1.1.1", 123, "mac"));
+//        registerDevice(new DeviceProperties("asd1", "dsaa1", "ver1", "1.1.1.2", 123, "mac1"));
     }
 
+    private void unregisterDevice(String uuid){
+        if(uuid != null) {
+            DeviceProperties deviceProperties = devicePropertiesMap.get(uuid);
+            if(deviceProperties != null) {
+                if (ipDevices.containsKey(deviceProperties.getIpAddress())) {
+                    devicePropertiesMap.remove(ipDevices.get(deviceProperties.getIpAddress()));
+                    ipDevices.remove(deviceProperties.getIpAddress());
+                }
+                devices.clear();
+                for (Map.Entry<String, DeviceProperties> entry : devicePropertiesMap.entrySet()) {
+                    devices.add(entry.getValue());
+                }
+                deviceAdapter.notifyDataSetChanged();
+            }
+        }
+    }
     private void registerDevice(DeviceProperties deviceProperties){
         if(deviceProperties != null) {
             if (ipDevices.containsKey(deviceProperties.getIpAddress())) {
@@ -71,71 +106,77 @@ public class DeviceListActivity extends Activity {
                 devices.add(entry.getValue());
             }
             deviceAdapter.notifyDataSetChanged();
-
-            new CoapPostTask().execute(deviceProperties.getDeviceCoapAddress() + "uuid", uuid);
-
+            String serverAddress = DeviceUtil.getLocalIpAddress();
+            new CoapPostTask().execute(deviceProperties.getDeviceFunctionCoapAddress() + "serverAddress", "coap://" + serverAddress + ":5683/");
+            new CoapPostTask().execute(deviceProperties.getDeviceFunctionCoapAddress() + "uuid", uuid);
         }
+    }
+    private void clearDeviceList(){
+        ipDevices.clear();
+        devicePropertiesMap.clear();
+        devices.clear();
+        deviceAdapter.notifyDataSetChanged();
     }
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             DeviceProperties deviceProperties = (DeviceProperties) intent.getExtras().getSerializable(ServerService.GET_DEVICE_DESCRIPTION_KEY);
             registerDevice(deviceProperties);
+            String uuid = intent.getExtras().getString(ServerService.GET_DEVICE_ACTIVE_NOTIFICATION_KEY);
+            if(uuid != null){
+                deviceProperties = devicePropertiesMap.get(uuid);
+                Integer position = deviceAdapter.getPosition(deviceProperties);
+                View v = ((ListView) findViewById(R.id.lvDevices)).getChildAt(position);
+                if(v != null) {
+                    ((View) v.findViewById(R.id.vNotificator)).setBackgroundColor(Color.GREEN);
+                    ((View) v.findViewById(R.id.vNotificator)).setEnabled(true);
+                }
+            }
         }
     };
-    public void setupBookSelectedListener() {
+    public void setupDeviceSelectedListener() {
         lvDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            // Launch the detail view passing book as an extra
+//                lvDevices.getChildAt(position).setEnabled(false);
             Intent intent = new Intent(DeviceListActivity.this, DeviceDetailActivity.class);
-            intent.putExtra(BOOK_DETAIL_KEY, deviceAdapter.getItem(position));
+            intent.putExtra(DEVICE_DETAIL_KEY, deviceAdapter.getItem(position));
             startActivity(intent);
             }
         });
     }
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_device_list, menu);
-        final MenuItem searchItem = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-//        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//            @Override
-//            public boolean onQueryTextSubmit(String query) {
-//                // Fetch the data remotely
-//                fetchBooks(query);
-//                // Reset SearchView
-//                searchView.clearFocus();
-//                searchView.setQuery("", false);
-//                searchView.setIconified(true);
-//                searchItem.collapseActionView();
-//                // Set activity title to search query
-//                BookListActivity.this.setTitle(query);
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String s) {
-//                return false;
-//            }
-//        });
-        return true;
+    public void onClick(View view) {
+
+        if (view.getId() == R.id.refreshbtn){
+            try {
+                String serverAddress = DeviceUtil.getLocalIpAddress();
+                String broadcast = DeviceUtil.getBroadcast();
+                clearDeviceList();
+                new CoapPostTask().execute("coap://" + broadcast + ":5683/v1/f/" + "requestRefersh", "coap://" + serverAddress + ":5683/");
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    public class CoapGetTask extends AsyncTask<String, String, CoapResponse> {
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            return true;
+        String uuid;
+        protected void onPreExecute() {
+            // Loading...
         }
 
-        return super.onOptionsItemSelected(item);
+        protected CoapResponse doInBackground(String... args) {
+            uuid = args[1];
+            CoapClient client = new CoapClient(args[0]);
+            return client.get();
+        }
+
+        protected void onPostExecute(CoapResponse response) {
+            if(response == null) {
+                unregisterDevice(uuid);
+            }
+        }
     }
 }

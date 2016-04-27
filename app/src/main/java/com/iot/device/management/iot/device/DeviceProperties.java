@@ -17,7 +17,9 @@ public class DeviceProperties implements Serializable {
     private String version;
 
     private String status;
-    private String deviceCoapAddress;
+    private String deviceFunctionCoapAddress;
+    private String deviceVarCoapAddress;
+    private Integer position;
 
     public DeviceProperties(String uuid, String title, String version, String ipAddress, Integer port, String mac) {
         this.uuid = uuid;
@@ -30,7 +32,8 @@ public class DeviceProperties implements Serializable {
         this.touchDetector = false;
         this.proximity = 0;
 
-        this.deviceCoapAddress = "coap://" + ipAddress + ":" + port + "/v1/f/";
+        this.deviceFunctionCoapAddress = "coap://" + ipAddress + ":" + port + "/v1/f/";
+        this.deviceVarCoapAddress = "coap://" + ipAddress + ":" + port + "/v1/v/";
     }
 
     public String getStatus() {
@@ -65,8 +68,12 @@ public class DeviceProperties implements Serializable {
         this.touchDetector = touchDetector;
     }
 
-    public String getDeviceCoapAddress() {
-        return deviceCoapAddress;
+    public String getDeviceFunctionCoapAddress() {
+        return deviceFunctionCoapAddress;
+    }
+
+    public String getDeviceVarCoapAddress() {
+        return deviceVarCoapAddress;
     }
 
     public String getTitle() {
